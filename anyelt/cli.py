@@ -15,6 +15,12 @@ from anyelt.capabilities import EltCapability
 
 
 def main():
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
+
     parser = argparse.ArgumentParser(
         prog="anyelt",
         description="AnyElt: Universal Electronic Light Table (ELT) Abstraction CLI"
