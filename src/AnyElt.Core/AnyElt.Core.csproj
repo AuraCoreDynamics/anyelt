@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>AnyElt.Core</RootNamespace>
+    <AssemblyName>AnyElt.Core</AssemblyName>
+    <Version>1.0.0</Version>
+    <Authors>AuraCore Dynamics</Authors>
+    <Company>AuraCore Dynamics</Company>
+    <Description>Universal Electronic Light Table (ELT) Abstraction Library Core Framework for .NET</Description>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+  </PropertyGroup>
+
+</Project>

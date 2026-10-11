@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AnyElt.Adapters/AnyElt.Adapters.csproj" />
+    <Project Path="src/AnyElt.Cli/AnyElt.Cli.csproj" />
+    <Project Path="src/AnyElt.Core/AnyElt.Core.csproj" />
+    <Project Path="src/AnyElt.Extensions/AnyElt.Extensions.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AnyElt.Tests/AnyElt.Tests.csproj" />
+  </Folder>
+</Solution>

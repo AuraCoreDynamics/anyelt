@@ -1,0 +1,281 @@
+{
+  "title": "AnyElt Universal ELT Capability Matrix",
+  "total_adapters": 7,
+  "total_capabilities": 18,
+  "columns": [
+    {
+      "slug": "direct_loading",
+      "name": "Direct Loading",
+      "description": "Load raster images directly via file path or stream (NITF, GeoTIFF, etc.)"
+    },
+    {
+      "slug": "catalog_search",
+      "name": "Catalog Search",
+      "description": "Query image catalog by spatial bbox, temporal range, or sensor"
+    },
+    {
+      "slug": "radiometric_enhancement",
+      "name": "Radiometric Enhancement",
+      "description": "Adjust brightness, contrast, gamma, sharpness, and color invert"
+    },
+    {
+      "slug": "dra_modes",
+      "name": "DRA Modes",
+      "description": "Dynamic Range Adjustment (Auto 1-99%, Min-Max, Histogram Equalize)"
+    },
+    {
+      "slug": "sensor_roam",
+      "name": "Sensor Roam",
+      "description": "Navigate and zoom in native unrectified sensor pixel coordinates"
+    },
+    {
+      "slug": "ground_roam",
+      "name": "Ground Roam",
+      "description": "Navigate and zoom in geodetic ground space (WGS84 / Web Mercator)"
+    },
+    {
+      "slug": "mensuration_shadow",
+      "name": "Shadow Mensuration",
+      "description": "Calculate object height from measured shadow length and sun elevation"
+    },
+    {
+      "slug": "mensuration_distance",
+      "name": "Distance Mensuration",
+      "description": "Calculate accurate 2D and 3D surface distances and azimuths"
+    },
+    {
+      "slug": "rpc_projection",
+      "name": "RPC Projection",
+      "description": "Forward/inverse projection using RPC00B rational polynomials"
+    },
+    {
+      "slug": "chipping_sensor",
+      "name": "Sensor Chipping",
+      "description": "Extract raw sub-image pixel matrices directly from the sensor image"
+    },
+    {
+      "slug": "chipping_ground",
+      "name": "Ground Chipping",
+      "description": "Extract georeferenced orthorectified image chips bounded by coordinates"
+    },
+    {
+      "slug": "tre_inspection",
+      "name": "TRE Inspection",
+      "description": "Parse and inspect MIL-STD-2500 Tagged Record Extensions (RPC00B, USE00A)"
+    },
+    {
+      "slug": "multi_spectral",
+      "name": "Multi-Spectral",
+      "description": "Band selection, false-color composite synthesis, and band arithmetic"
+    },
+    {
+      "slug": "hyperspectral",
+      "name": "Hyperspectral",
+      "description": "Exploit high-dimensional hyperspectral data cubes (50+ spectral bands)"
+    },
+    {
+      "slug": "spectral_signature",
+      "name": "Spectral Signature",
+      "description": "Extract reflectance wavelength curves from regions of interest (ROI)"
+    },
+    {
+      "slug": "scripting_macro",
+      "name": "Scripting Macro",
+      "description": "Execute native scripts, macros, or plugins within the ELT engine"
+    },
+    {
+      "slug": "viewport_sync",
+      "name": "Viewport Sync",
+      "description": "Broadcast and listen to synchronized viewport extents across ELTs"
+    },
+    {
+      "slug": "orthorectification",
+      "name": "Orthorectification",
+      "description": "Orthorectify imagery on the fly using digital elevation models (DEM)"
+    }
+  ],
+  "adapters": [
+    {
+      "elt_type": "auramist",
+      "name": "AuraMist Web ELT Adapter",
+      "version": "1.0.0",
+      "capabilities_mask": 397309,
+      "features": {
+        "direct_loading": true,
+        "catalog_search": false,
+        "radiometric_enhancement": true,
+        "dra_modes": true,
+        "sensor_roam": true,
+        "ground_roam": true,
+        "mensuration_shadow": true,
+        "mensuration_distance": true,
+        "rpc_projection": true,
+        "chipping_sensor": true,
+        "chipping_ground": true,
+        "tre_inspection": true,
+        "multi_spectral": false,
+        "hyperspectral": false,
+        "spectral_signature": false,
+        "scripting_macro": false,
+        "viewport_sync": true,
+        "orthorectification": true
+      }
+    },
+    {
+      "elt_type": "socet_gxp",
+      "name": "BAE Systems SOCET GXP Adapter",
+      "version": "1.0.0",
+      "capabilities_mask": 139263,
+      "features": {
+        "direct_loading": true,
+        "catalog_search": true,
+        "radiometric_enhancement": true,
+        "dra_modes": true,
+        "sensor_roam": true,
+        "ground_roam": true,
+        "mensuration_shadow": true,
+        "mensuration_distance": true,
+        "rpc_projection": true,
+        "chipping_sensor": true,
+        "chipping_ground": true,
+        "tre_inspection": true,
+        "multi_spectral": true,
+        "hyperspectral": false,
+        "spectral_signature": false,
+        "scripting_macro": false,
+        "viewport_sync": true,
+        "orthorectification": false
+      }
+    },
+    {
+      "elt_type": "remoteview",
+      "name": "Textron Systems RemoteView Adapter",
+      "version": "1.0.0",
+      "capabilities_mask": 4093,
+      "features": {
+        "direct_loading": true,
+        "catalog_search": false,
+        "radiometric_enhancement": true,
+        "dra_modes": true,
+        "sensor_roam": true,
+        "ground_roam": true,
+        "mensuration_shadow": true,
+        "mensuration_distance": true,
+        "rpc_projection": true,
+        "chipping_sensor": true,
+        "chipping_ground": true,
+        "tre_inspection": true,
+        "multi_spectral": false,
+        "hyperspectral": false,
+        "spectral_signature": false,
+        "scripting_macro": false,
+        "viewport_sync": false,
+        "orthorectification": false
+      }
+    },
+    {
+      "elt_type": "qgis",
+      "name": "QGIS PyQGIS Bridge Adapter",
+      "version": "1.0.0",
+      "capabilities_mask": 138405,
+      "features": {
+        "direct_loading": true,
+        "catalog_search": false,
+        "radiometric_enhancement": true,
+        "dra_modes": false,
+        "sensor_roam": false,
+        "ground_roam": true,
+        "mensuration_shadow": false,
+        "mensuration_distance": true,
+        "rpc_projection": false,
+        "chipping_sensor": false,
+        "chipping_ground": true,
+        "tre_inspection": true,
+        "multi_spectral": true,
+        "hyperspectral": false,
+        "spectral_signature": false,
+        "scripting_macro": false,
+        "viewport_sync": true,
+        "orthorectification": false
+      }
+    },
+    {
+      "elt_type": "ispy",
+      "name": "NGA iSPY Catalog Adapter",
+      "version": "1.0.0",
+      "capabilities_mask": 3074,
+      "features": {
+        "direct_loading": false,
+        "catalog_search": true,
+        "radiometric_enhancement": false,
+        "dra_modes": false,
+        "sensor_roam": false,
+        "ground_roam": false,
+        "mensuration_shadow": false,
+        "mensuration_distance": false,
+        "rpc_projection": false,
+        "chipping_sensor": false,
+        "chipping_ground": true,
+        "tre_inspection": true,
+        "multi_spectral": false,
+        "hyperspectral": false,
+        "spectral_signature": false,
+        "scripting_macro": false,
+        "viewport_sync": false,
+        "orthorectification": false
+      }
+    },
+    {
+      "elt_type": "imagej",
+      "name": "ImageJ / Fiji GEOINT Adapter",
+      "version": "1.0.0",
+      "capabilities_mask": 68605,
+      "features": {
+        "direct_loading": true,
+        "catalog_search": false,
+        "radiometric_enhancement": true,
+        "dra_modes": true,
+        "sensor_roam": true,
+        "ground_roam": true,
+        "mensuration_shadow": true,
+        "mensuration_distance": true,
+        "rpc_projection": true,
+        "chipping_sensor": true,
+        "chipping_ground": false,
+        "tre_inspection": true,
+        "multi_spectral": false,
+        "hyperspectral": false,
+        "spectral_signature": false,
+        "scripting_macro": true,
+        "viewport_sync": false,
+        "orthorectification": false
+      }
+    },
+    {
+      "elt_type": "quasar",
+      "name": "Quasar / Orange Hyperspectral Adapter",
+      "version": "1.0.0",
+      "capabilities_mask": 29185,
+      "features": {
+        "direct_loading": true,
+        "catalog_search": false,
+        "radiometric_enhancement": false,
+        "dra_modes": false,
+        "sensor_roam": false,
+        "ground_roam": false,
+        "mensuration_shadow": false,
+        "mensuration_distance": false,
+        "rpc_projection": false,
+        "chipping_sensor": true,
+        "chipping_ground": false,
+        "tre_inspection": false,
+        "multi_spectral": true,
+        "hyperspectral": true,
+        "spectral_signature": true,
+        "scripting_macro": false,
+        "viewport_sync": false,
+        "orthorectification": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>AnyElt.Adapters</RootNamespace>
+    <AssemblyName>AnyElt.Adapters</AssemblyName>
+    <Version>1.0.0</Version>
+    <Authors>AuraCore Dynamics</Authors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AnyElt.Core\AnyElt.Core.csproj" />
+    <ProjectReference Include="..\AnyElt.Extensions\AnyElt.Extensions.csproj" />
+  </ItemGroup>
+
+</Project>

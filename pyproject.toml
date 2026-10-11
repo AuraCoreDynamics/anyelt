@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "anyelt"
+version = "1.0.0"
+description = "Universal Electronic Light Table (ELT) Abstraction Library for GEOINT"
+readme = "README.md"
+authors = [{ name = "AuraCore Dynamics", email = "engineering@auracoredynamics.com" }]
+license = { text = "Apache-2.0" }
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: GIS",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12"
+]
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+anyelt = "anyelt.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/AuraCoreDynamics/anyelt"
+Repository = "https://github.com/AuraCoreDynamics/anyelt.git"
+Documentation = "https://github.com/AuraCoreDynamics/anyelt#readme"
