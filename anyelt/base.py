@@ -162,30 +162,8 @@ class IEltAdapter(ABC):
         else:
             raise ValueError("ChipRequest must specify either sensor_bounds or ground_bounds.")
 
-        # Default synthetic chip generator if not overridden by subclass
-        return self._generate_synthetic_chip(request)
-
-    def _generate_synthetic_chip(self, request: ChipRequest) -> ImageChip:
-        """Fallback chip byte synthesis for testing and adapters without binary hooks."""
-        w = request.sensor_bounds.width if request.sensor_bounds else 256
-        h = request.sensor_bounds.height if request.sensor_bounds else 256
-        w = max(1, min(w, 4096))
-        h = max(1, min(h, 4096))
-
-        # 1x1 to wxh dummy PNG payload with 8-byte magic header
-        png_header = bytes([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])
-        body = bytes([128] * 64)
-        return ImageChip(
-            chip_id=f"chip_{self.elt_type}_{w}x{h}",
-            source_uri=request.image_uri,
-            width=w,
-            height=h,
-            format=request.output_format,
-            data=png_header + body,
-            sensor_bounds=request.sensor_bounds,
-            ground_bounds=request.ground_bounds,
-            metadata={"adapter": self.name, "bands": request.bands or [1]}
-        )
+        from anyelt.io import extract_chip
+        return extract_chip(request.image_uri, request)
 
     # -------------------------------------------------------------------------
     # Tactical Mensuration

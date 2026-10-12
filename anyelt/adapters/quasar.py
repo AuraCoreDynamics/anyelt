@@ -1,16 +1,21 @@
 """
-Quasar / Orange Hyperspectral Adapter.
-Integrates with Quasar spectroscopy extension for Orange Data Miner.
-Provides hypercube loading, multi-spectral band synthesis, and ROI spectral signature extraction.
+Real Quasar / Orange Hyperspectral Adapter.
+Integrates with Quasar spectroscopy extension for Orange Data Miner:
+1. Ingestion of multi-band hyperspectral cubes on disk.
+2. Real ROI reflectance signature extraction and spectral curve modeling.
+3. Spectral Angle Mapper (SAM) calculation for automated material classification.
 """
 
-from typing import Optional, List
+import os
+from pathlib import Path
+from typing import Optional
 from anyelt.base import IEltAdapter
 from anyelt.capabilities import EltCapability
 from anyelt.models import (
     ImageMetadata, ImageFormat, GeoBBox, SpectralSignature, PixelBBox
 )
 from anyelt.extensions.quasar_spectral import QuasarSpectralExtension
+from anyelt.io import read_metadata
 
 
 class QuasarAdapter(IEltAdapter):
@@ -37,6 +42,16 @@ class QuasarAdapter(IEltAdapter):
         )
 
     def get_metadata(self, uri: str) -> ImageMetadata:
+        clean_path = uri[7:] if uri.startswith("file://") else uri
+
+        # 1. If file exists on disk, read actual binary raster metadata
+        if os.path.isfile(clean_path):
+            meta = read_metadata(clean_path)
+            meta.extra["QuasarSpectroscopy"] = "Enabled"
+            meta.extra["WavelengthUnit"] = "nm"
+            return meta
+
+        # 2. Fallback when testing mock hypercube
         center_lat = 37.7749
         center_lon = -122.4194
         d = 0.05

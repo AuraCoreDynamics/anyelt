@@ -105,32 +105,11 @@ public abstract class BaseEltAdapter : IEltAdapter
             throw new ArgumentException("ChipRequest must specify either SensorBounds or GroundBounds.");
         }
 
-        int w = request.SensorBounds != null ? request.SensorBounds.Width : 256;
-        int h = request.SensorBounds != null ? request.SensorBounds.Height : 256;
-        w = Math.Clamp(w, 1, 4096);
-        h = Math.Clamp(h, 1, 4096);
+        string path = request.ImageUri.StartsWith("file://", StringComparison.OrdinalIgnoreCase)
+            ? request.ImageUri.Substring(7)
+            : request.ImageUri;
 
-        byte[] pngHeader = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
-        byte[] payload = new byte[pngHeader.Length + 64];
-        Array.Copy(pngHeader, payload, pngHeader.Length);
-        Array.Fill(payload, (byte)128, pngHeader.Length, 64);
-
-        return new ImageChip
-        {
-            ChipId = $"chip_{EltType}_{w}x{h}",
-            SourceUri = request.ImageUri,
-            Width = w,
-            Height = h,
-            Format = request.OutputFormat,
-            Data = payload,
-            SensorBounds = request.SensorBounds,
-            GroundBounds = request.GroundBounds,
-            Metadata = new Dictionary<string, object>
-            {
-                ["Adapter"] = Name,
-                ["Bands"] = request.Bands ?? [1]
-            }
-        };
+        return AnyElt.Core.IO.RasterReader.ExtractChip(path, request);
     }
 
     public virtual MensurationResult Mensurate(MensurationRequest request)

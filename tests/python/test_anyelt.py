@@ -3,6 +3,8 @@ AnyElt Comprehensive Python Test Suite.
 Tests all 7 ELT adapters, models, capabilities, cross-ELT bridging, and matrix generators.
 """
 
+import os
+import tempfile
 import pytest
 import math
 
@@ -21,6 +23,7 @@ from anyelt.adapters import (
 )
 from anyelt.bridge import EltBridge, EltSessionBroker
 from anyelt.matrix import generate_capability_matrix_data, generate_capability_matrix_markdown
+from anyelt.io.raster import create_synthetic_nitf_bytes
 
 
 def test_adapters_self_declare_capabilities():
@@ -242,3 +245,69 @@ def test_api_convenience_functions():
     res = anyelt.mensurate_shadow(adapter, shadow_length_m=15.0, sun_elevation_deg=45.0)
     # tan(45 deg) = 1.0 -> h = 15.0m
     assert math.isclose(res.calculated_value, 15.0, rel_tol=1e-3)
+
+
+def test_real_nitf_binary_ingestion_and_chipping_on_disk():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_file = os.path.join(temp_dir, "real_recon_pass.ntf")
+        nitf_bytes = create_synthetic_nitf_bytes("MISSION_RECON_DC")
+        with open(temp_file, "wb") as f:
+            f.write(nitf_bytes)
+
+        assert os.path.exists(temp_file)
+
+        # Ingest via AuraMistAdapter and assert real binary decoding
+        adapter = AuraMistAdapter()
+        meta = adapter.load_image(temp_file)
+
+        assert meta is not None
+        assert meta.product_id == "MISSION_RECON_DC"
+        assert meta.format == ImageFormat.NITF_21
+        assert meta.sun_elevation_deg == 46.8
+        assert "RPC00B" in meta.tres
+        assert "USE00A" in meta.tres
+
+        # Extract real PNG chip from disk
+        chip = adapter.extract_chip(ChipRequest(
+            image_uri=temp_file,
+            sensor_bounds=PixelBBox(0, 0, 128, 128),
+            output_format="PNG"
+        ))
+
+        assert chip is not None
+        assert chip.width == 128
+        assert chip.height == 128
+        assert len(chip.data) > 50
+
+        # Assert real PNG magic header (0x89 'P' 'N' 'G')
+        assert chip.data[0] == 0x89
+        assert chip.data[1] == ord('P')
+        assert chip.data[2] == ord('N')
+        assert chip.data[3] == ord('G')
+
+
+def test_real_qgis_adapter_on_disk():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_file = os.path.join(temp_dir, "sample_qgis.ntf")
+        nitf_bytes = create_synthetic_nitf_bytes("QGIS_SAMPLE_01")
+        with open(temp_file, "wb") as f:
+            f.write(nitf_bytes)
+
+        qgis = QgisAdapter()
+        meta = qgis.load_image(temp_file)
+
+        assert meta is not None
+        assert meta.product_id == "QGIS_SAMPLE_01"
+        assert meta.bbox is not None
+
+        chip = qgis.extract_chip(ChipRequest(
+            image_uri=temp_file,
+            ground_bounds=meta.bbox,
+            output_format="PNG"
+        ))
+
+        assert chip is not None
+        assert chip.data[0] == 0x89
+        assert chip.data[1] == ord('P')
+        assert chip.data[2] == ord('N')
+        assert chip.data[3] == ord('G')

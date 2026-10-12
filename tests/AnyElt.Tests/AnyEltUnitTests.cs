@@ -255,4 +255,95 @@ public class AnyEltUnitTests
         Assert.Contains("NGA iSPY Catalog Adapter", matrixMd);
         Assert.Contains("✔", matrixMd);
     }
+
+    [Fact]
+    public void VerifyRealNitfBinaryIngestionAndChippingOnDisk()
+    {
+        string tempDir = Path.Combine(Path.GetTempPath(), "anyelt_test_" + Guid.NewGuid().ToString("N"));
+        string tempFile = Path.Combine(tempDir, "real_recon_pass.ntf");
+
+        try
+        {
+            Directory.CreateDirectory(tempDir);
+
+            // 1. Write actual binary MIL-STD-2500C NITF container to disk
+            byte[] nitfBytes = AnyElt.Core.IO.RasterReader.CreateSyntheticNitfBytes("MISSION_RECON_DC");
+            File.WriteAllBytes(tempFile, nitfBytes);
+            Assert.True(File.Exists(tempFile));
+
+            // 2. Ingest via AuraMistAdapter and assert real binary decoding
+            var adapter = new AuraMistAdapter();
+            var meta = adapter.LoadImage(tempFile);
+
+            Assert.NotNull(meta);
+            Assert.Equal("MISSION_RECON_DC", meta.ProductId);
+            Assert.Equal(ImageFormat.Nitf21, meta.Format);
+            Assert.Equal(46.8, meta.SunElevationDeg);
+            Assert.True(meta.Tres.ContainsKey("RPC00B"));
+            Assert.True(meta.Tres.ContainsKey("USE00A"));
+
+            // 3. Extract real PNG chip from disk
+            var chip = adapter.ExtractChip(new ChipRequest
+            {
+                ImageUri = tempFile,
+                SensorBounds = new PixelBBox(0, 0, 128, 128),
+                OutputFormat = "PNG"
+            });
+
+            Assert.NotNull(chip);
+            Assert.Equal(128, chip.Width);
+            Assert.Equal(128, chip.Height);
+            Assert.True(chip.Data.Length > 50);
+
+            // Assert real PNG signature
+            Assert.Equal(0x89, chip.Data[0]);
+            Assert.Equal((byte)'P', chip.Data[1]);
+            Assert.Equal((byte)'N', chip.Data[2]);
+            Assert.Equal((byte)'G', chip.Data[3]);
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir))
+            {
+                try { Directory.Delete(tempDir, true); } catch { }
+            }
+        }
+    }
+
+    [Fact]
+    public void VerifyRealQgisAdapterOnDisk()
+    {
+        string tempDir = Path.Combine(Path.GetTempPath(), "anyelt_qgis_" + Guid.NewGuid().ToString("N"));
+        string tempFile = Path.Combine(tempDir, "sample_qgis.ntf");
+
+        try
+        {
+            Directory.CreateDirectory(tempDir);
+            byte[] nitfBytes = AnyElt.Core.IO.RasterReader.CreateSyntheticNitfBytes("QGIS_SAMPLE_01");
+            File.WriteAllBytes(tempFile, nitfBytes);
+
+            var qgis = new QgisAdapter();
+            var meta = qgis.LoadImage(tempFile);
+
+            Assert.NotNull(meta);
+            Assert.Equal("QGIS_SAMPLE_01", meta.ProductId);
+            Assert.NotNull(meta.BBox);
+
+            var chip = qgis.ExtractChip(new ChipRequest
+            {
+                ImageUri = tempFile,
+                GroundBounds = meta.BBox,
+                OutputFormat = "PNG"
+            });
+            Assert.NotNull(chip);
+            Assert.Equal(0x89, chip.Data[0]);
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir))
+            {
+                try { Directory.Delete(tempDir, true); } catch { }
+            }
+        }
+    }
 }

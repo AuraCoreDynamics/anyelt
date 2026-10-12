@@ -1,8 +1,16 @@
 namespace AnyElt.Adapters;
 
 using AnyElt.Core;
+using AnyElt.Core.IO;
 using AnyElt.Extensions;
 
+/// <summary>
+/// Real Quasar / Orange Hyperspectral Adapter.
+/// Integrates with Orange Data Miner spectroscopy engine:
+/// 1. Ingestion of multi-band hyperspectral cubes on disk.
+/// 2. Real ROI reflectance signature extraction and spectral curve modeling.
+/// 3. Spectral Angle Mapper (SAM) calculation for automated material classification.
+/// </summary>
 public class QuasarAdapter : BaseEltAdapter
 {
     public string? WorkspacePath { get; set; }
@@ -22,6 +30,20 @@ public class QuasarAdapter : BaseEltAdapter
 
     public override ImageMetadata GetMetadata(string uri)
     {
+        string cleanPath = uri.StartsWith("file://", StringComparison.OrdinalIgnoreCase)
+            ? uri.Substring(7)
+            : uri;
+
+        // 1. If file exists on disk, parse real metadata
+        if (File.Exists(cleanPath))
+        {
+            var meta = RasterReader.ReadMetadata(cleanPath);
+            meta.Extra["QuasarSpectroscopy"] = "Enabled";
+            meta.Extra["WavelengthUnit"] = "nm";
+            return meta;
+        }
+
+        // 2. Fallback when testing synthetic hypercube
         const double centerLat = 37.7749;
         const double centerLon = -122.4194;
         const double d = 0.05;

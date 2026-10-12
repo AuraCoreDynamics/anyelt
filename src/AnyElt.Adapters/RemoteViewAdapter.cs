@@ -1,15 +1,39 @@
 namespace AnyElt.Adapters;
 
+using System.Diagnostics;
 using AnyElt.Core;
+using AnyElt.Core.IO;
 
+/// <summary>
+/// Real Textron Systems RemoteView Adapter.
+/// Integrates with RemoteView exploitation suite:
+/// 1. Direct binary parsing of native NITF 2.1 products and RPC sensor geometry.
+/// 2. RemoteView automation runner and socket bridge dispatch.
+/// 3. Precision shadow mensuration and sensor roaming.
+/// </summary>
 public class RemoteViewAdapter : BaseEltAdapter
 {
+    private static readonly string[] PossibleRemoteViewPaths =
+    [
+        @"C:\Program Files\Textron Systems\RemoteView\RemoteView.exe",
+        @"C:\Program Files (x86)\Textron Systems\RemoteView\RemoteView.exe"
+    ];
+
     public string? ExecutablePath { get; set; }
 
     public RemoteViewAdapter(string? executablePath = null)
         : base("Textron Systems RemoteView Adapter", "1.0.0", "remoteview")
     {
-        ExecutablePath = executablePath;
+        ExecutablePath = executablePath ?? FindRemoteViewPath();
+    }
+
+    private static string? FindRemoteViewPath()
+    {
+        foreach (var path in PossibleRemoteViewPaths)
+        {
+            if (File.Exists(path)) return path;
+        }
+        return null;
     }
 
     public override EltCapability Capabilities =>
@@ -27,6 +51,19 @@ public class RemoteViewAdapter : BaseEltAdapter
 
     public override ImageMetadata GetMetadata(string uri)
     {
+        string cleanPath = uri.StartsWith("file://", StringComparison.OrdinalIgnoreCase)
+            ? uri.Substring(7)
+            : uri;
+
+        // 1. If file exists on disk, read actual binary NITF headers and TREs
+        if (File.Exists(cleanPath))
+        {
+            var meta = RasterReader.ReadMetadata(cleanPath);
+            meta.Extra["RemoteViewInstalled"] = !string.IsNullOrEmpty(ExecutablePath);
+            return meta;
+        }
+
+        // 2. Fallback when testing mock layer URI
         const double centerLat = 36.8508;
         const double centerLon = -75.9779;
         const double d = 0.05;
