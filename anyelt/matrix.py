@@ -9,19 +9,13 @@ import json
 
 from anyelt.capabilities import EltCapability, CAPABILITY_METADATA
 from anyelt.adapters import (
-    AuraMistAdapter, SocetGxpAdapter, RemoteViewAdapter,
-    QgisAdapter, ISpyAdapter, ImageJAdapter, QuasarAdapter
+    AuraMistAdapter, QgisAdapter
 )
 
 
 ALL_ADAPTER_CLASSES = [
     AuraMistAdapter,
-    SocetGxpAdapter,
-    RemoteViewAdapter,
-    QgisAdapter,
-    ISpyAdapter,
-    ImageJAdapter,
-    QuasarAdapter
+    QgisAdapter
 ]
 
 

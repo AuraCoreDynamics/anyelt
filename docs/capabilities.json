@@ -1,6 +1,6 @@
 {
   "title": "AnyElt Universal ELT Capability Matrix",
-  "total_adapters": 7,
+  "total_adapters": 2,
   "total_capabilities": 18,
   "columns": [
     {
@@ -99,10 +99,10 @@
       "elt_type": "auramist",
       "name": "AuraMist Web ELT Adapter",
       "version": "1.0.0",
-      "capabilities_mask": 397309,
+      "capabilities_mask": 397311,
       "features": {
         "direct_loading": true,
-        "catalog_search": false,
+        "catalog_search": true,
         "radiometric_enhancement": true,
         "dra_modes": true,
         "sensor_roam": true,
@@ -119,58 +119,6 @@
         "scripting_macro": false,
         "viewport_sync": true,
         "orthorectification": true
-      }
-    },
-    {
-      "elt_type": "socet_gxp",
-      "name": "BAE Systems SOCET GXP Adapter",
-      "version": "1.0.0",
-      "capabilities_mask": 139263,
-      "features": {
-        "direct_loading": true,
-        "catalog_search": true,
-        "radiometric_enhancement": true,
-        "dra_modes": true,
-        "sensor_roam": true,
-        "ground_roam": true,
-        "mensuration_shadow": true,
-        "mensuration_distance": true,
-        "rpc_projection": true,
-        "chipping_sensor": true,
-        "chipping_ground": true,
-        "tre_inspection": true,
-        "multi_spectral": true,
-        "hyperspectral": false,
-        "spectral_signature": false,
-        "scripting_macro": false,
-        "viewport_sync": true,
-        "orthorectification": false
-      }
-    },
-    {
-      "elt_type": "remoteview",
-      "name": "Textron Systems RemoteView Adapter",
-      "version": "1.0.0",
-      "capabilities_mask": 4093,
-      "features": {
-        "direct_loading": true,
-        "catalog_search": false,
-        "radiometric_enhancement": true,
-        "dra_modes": true,
-        "sensor_roam": true,
-        "ground_roam": true,
-        "mensuration_shadow": true,
-        "mensuration_distance": true,
-        "rpc_projection": true,
-        "chipping_sensor": true,
-        "chipping_ground": true,
-        "tre_inspection": true,
-        "multi_spectral": false,
-        "hyperspectral": false,
-        "spectral_signature": false,
-        "scripting_macro": false,
-        "viewport_sync": false,
-        "orthorectification": false
       }
     },
     {
@@ -196,84 +144,6 @@
         "spectral_signature": false,
         "scripting_macro": false,
         "viewport_sync": true,
-        "orthorectification": false
-      }
-    },
-    {
-      "elt_type": "ispy",
-      "name": "NGA iSPY Catalog Adapter",
-      "version": "1.0.0",
-      "capabilities_mask": 3074,
-      "features": {
-        "direct_loading": false,
-        "catalog_search": true,
-        "radiometric_enhancement": false,
-        "dra_modes": false,
-        "sensor_roam": false,
-        "ground_roam": false,
-        "mensuration_shadow": false,
-        "mensuration_distance": false,
-        "rpc_projection": false,
-        "chipping_sensor": false,
-        "chipping_ground": true,
-        "tre_inspection": true,
-        "multi_spectral": false,
-        "hyperspectral": false,
-        "spectral_signature": false,
-        "scripting_macro": false,
-        "viewport_sync": false,
-        "orthorectification": false
-      }
-    },
-    {
-      "elt_type": "imagej",
-      "name": "ImageJ / Fiji GEOINT Adapter",
-      "version": "1.0.0",
-      "capabilities_mask": 68605,
-      "features": {
-        "direct_loading": true,
-        "catalog_search": false,
-        "radiometric_enhancement": true,
-        "dra_modes": true,
-        "sensor_roam": true,
-        "ground_roam": true,
-        "mensuration_shadow": true,
-        "mensuration_distance": true,
-        "rpc_projection": true,
-        "chipping_sensor": true,
-        "chipping_ground": false,
-        "tre_inspection": true,
-        "multi_spectral": false,
-        "hyperspectral": false,
-        "spectral_signature": false,
-        "scripting_macro": true,
-        "viewport_sync": false,
-        "orthorectification": false
-      }
-    },
-    {
-      "elt_type": "quasar",
-      "name": "Quasar / Orange Hyperspectral Adapter",
-      "version": "1.0.0",
-      "capabilities_mask": 29185,
-      "features": {
-        "direct_loading": true,
-        "catalog_search": false,
-        "radiometric_enhancement": false,
-        "dra_modes": false,
-        "sensor_roam": false,
-        "ground_roam": false,
-        "mensuration_shadow": false,
-        "mensuration_distance": false,
-        "rpc_projection": false,
-        "chipping_sensor": true,
-        "chipping_ground": false,
-        "tre_inspection": false,
-        "multi_spectral": true,
-        "hyperspectral": true,
-        "spectral_signature": true,
-        "scripting_macro": false,
-        "viewport_sync": false,
         "orthorectification": false
       }
     }

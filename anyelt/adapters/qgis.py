@@ -16,6 +16,7 @@ from typing import Optional, Dict, Any
 from anyelt.base import IEltAdapter
 from anyelt.capabilities import EltCapability
 from anyelt.models import ImageMetadata, ImageFormat, GeoBBox, ViewportState
+from anyelt.exceptions import ImageNotFoundException
 from anyelt.io import read_metadata
 
 POSSIBLE_QGIS_BATCH_PATHS = [
@@ -65,7 +66,7 @@ class QgisAdapter(IEltAdapter):
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.settimeout(0.5)
-            s.connect(("0.0.0.0", self.rpc_port))
+            s.connect(("sm", self.rpc_port))
             self._sock = s
         except Exception:
             self._sock = None
@@ -95,38 +96,12 @@ class QgisAdapter(IEltAdapter):
             meta.extra["QgisEngine"] = "Native_RasterReader"
             return meta
 
-        # 3. Fallback when testing mock layer URI
-        center_lat = 45.4215
-        center_lon = -75.6972
-        d = 0.08
-        bbox = GeoBBox(min_lon=center_lon - d, min_lat=center_lat - d, max_lon=center_lon + d, max_lat=center_lat + d)
-
-        return ImageMetadata(
-            uri=uri,
-            product_id=Path(uri).stem,
-            sensor_id="SENTINEL-2/MSI",
-            format=ImageFormat.GEOTIFF,
-            width=3600,
-            height=3600,
-            bit_depth=16,
-            band_count=12,
-            sun_elevation_deg=48.0,
-            sun_azimuth_deg=150.0,
-            niirs=4.5,
-            acquisition_time_iso="2026-10-08T15:20:00Z",
-            bbox=bbox,
-            tres={"GDAL_METADATA": "DRIVER=GTiff"},
-            rpc=None,
-            extra={
-                "QgisRpcPort": self.rpc_port,
-                "QgisBatchFound": bool(self.qgis_batch_path)
-            }
-        )
+        raise ImageNotFoundException(f"Raster file '{uri}' not found on disk.")
 
     def roam_to_geo(self, lat: float, lon: float, zoom: Optional[float] = None) -> ViewportState:
         vp = super().roam_to_geo(lat, lon, zoom)
 
-        # If live QGIS GUI bridge is connected, send extent command
+        # If connected to live QGIS socket bridge, set canvas extent
         if self._sock:
             try:
                 span = 0.05 / (zoom or 1.0)
@@ -145,17 +120,15 @@ class QgisAdapter(IEltAdapter):
 
     def _query_via_pyqgis(self, file_path: str) -> Optional[ImageMetadata]:
         try:
-            norm_path = file_path.replace("\\", "/")
-            qgis_root = Path(self.qgis_batch_path).parent.parent
-            prefix_path = str(qgis_root / "apps" / "qgis-ltr").replace("\\", "/")
-
+            escaped_path = file_path.replace("\\", "/")
+            qgis_prefix = str(Path(self.qgis_batch_path).parent.parent / "apps" / "qgis-ltr")
             script = f"""
 import sys, json
 from qgis.core import QgsApplication, QgsRasterLayer
-QgsApplication.setPrefixPath(r'{prefix_path}', True)
+QgsApplication.setPrefixPath(r'{qgis_prefix}', True)
 qgs = QgsApplication([], False)
 qgs.initQgis()
-layer = QgsRasterLayer('{norm_path}', 'Layer')
+layer = QgsRasterLayer('{escaped_path}', 'Layer')
 if layer.isValid():
     ext = layer.extent()
     res = {{
@@ -171,31 +144,43 @@ else:
 print('__QGIS_OUT__' + json.dumps(res))
 qgs.exitQgis()
 """
+            compact_script = " ".join([line.strip() for line in script.splitlines() if line.strip()])
             res = subprocess.run(
-                [self.qgis_batch_path, "-c", script.replace("\r\n", " ").replace("\n", " ")],
+                [self.qgis_batch_path, "-c", compact_script],
                 capture_output=True,
                 text=True,
                 timeout=8
             )
-            marker = "__QGIS_OUT__"
-            if marker in res.stdout:
-                json_str = res.stdout.split(marker)[1].strip()
-                data = json.loads(json_str)
-                if data.get("valid"):
-                    bbox = data["bbox"]
+
+            if "__QGIS_OUT__" in res.stdout:
+                marker = res.stdout.index("__QGIS_OUT__")
+                payload = json.loads(res.stdout[marker + len("__QGIS_OUT__"):].strip())
+                if payload.get("valid"):
+                    w = payload["width"]
+                    h = payload["height"]
+                    bands = payload["bands"]
+                    crs = payload["crs"]
+                    bbox_list = payload["bbox"]
+
+                    fmt = ImageFormat.NITF_21 if file_path.lower().endswith(".ntf") else ImageFormat.GEOTIFF
                     return ImageMetadata(
                         uri=file_path,
                         product_id=Path(file_path).stem,
                         sensor_id="QGIS-PYQGIS-RASTER",
-                        format=ImageFormat.NITF_21 if file_path.lower().endswith(".ntf") else ImageFormat.GEOTIFF,
-                        width=data["width"],
-                        height=data["height"],
+                        format=fmt,
+                        width=w,
+                        height=h,
                         bit_depth=16,
-                        band_count=data["bands"],
+                        band_count=bands,
                         sun_elevation_deg=45.0,
-                        bbox=GeoBBox(min_lon=bbox[0], min_lat=bbox[1], max_lon=bbox[2], max_lat=bbox[3]),
-                        tres={"QGIS_CRS": data["crs"]},
-                        extra={"PyQgisExecuted": True, "QgisCrs": data["crs"]}
+                        bbox=GeoBBox(
+                            min_lon=bbox_list[0],
+                            min_lat=bbox_list[1],
+                            max_lon=bbox_list[2],
+                            max_lat=bbox_list[3]
+                        ),
+                        tres={"QGIS_CRS": crs},
+                        extra={"PyQgisExecuted": True, "QgisCrs": crs}
                     )
         except Exception:
             pass

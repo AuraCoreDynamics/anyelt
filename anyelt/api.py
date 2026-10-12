@@ -14,25 +14,19 @@ from anyelt.models import (
 from anyelt.bridge import EltBridge, EltSessionBroker
 from anyelt.matrix import generate_capability_matrix_data, generate_capability_matrix_markdown
 from anyelt.adapters import (
-    AuraMistAdapter, SocetGxpAdapter, RemoteViewAdapter,
-    QgisAdapter, ISpyAdapter, ImageJAdapter, QuasarAdapter
+    AuraMistAdapter, QgisAdapter
 )
 
 ADAPTER_REGISTRY: Dict[str, type] = {
     "auramist": AuraMistAdapter,
-    "socet_gxp": SocetGxpAdapter,
-    "remoteview": RemoteViewAdapter,
-    "qgis": QgisAdapter,
-    "ispy": ISpyAdapter,
-    "imagej": ImageJAdapter,
-    "quasar": QuasarAdapter
+    "qgis": QgisAdapter
 }
 
 
 def get_adapter(elt_type: str, **kwargs) -> IEltAdapter:
     """
     Instantiate an ELT adapter by its engine key.
-    Supported types: 'auramist', 'socet_gxp', 'remoteview', 'qgis', 'ispy', 'imagej', 'quasar'.
+    Supported types: 'auramist', 'qgis'.
     """
     key = elt_type.strip().lower()
     if key not in ADAPTER_REGISTRY:
@@ -63,7 +57,7 @@ def open_image(uri: str, elt_type: Optional[str] = None, **kwargs) -> tuple[IElt
     if elt_type:
         adapter = get_adapter(elt_type, **kwargs)
     else:
-        # Default to AuraMist or best DirectLoading adapter
+        # Default to AuraMist or QGIS
         adapter = find_best_elt(EltCapability.DIRECT_LOADING) or AuraMistAdapter()
 
     meta = adapter.load_image(uri)

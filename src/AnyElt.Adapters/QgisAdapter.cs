@@ -12,7 +12,7 @@ using AnyElt.Core.IO;
 /// Interfaces with QGIS 3.40+ on Windows via:
 /// 1. Headless PyQGIS runtime (python-qgis-ltr.bat) for native QgsRasterLayer inspection and analysis.
 /// 2. Local JSON-RPC TCP socket bridge (port 9180) to command live QGIS GUI canvas extents and layers.
-/// 3. Native binary RasterReader fallback when running standalone without QGIS installed.
+/// 3. Native binary RasterReader for direct byte-level NITF and GeoTIFF decoding.
 /// </summary>
 public class QgisAdapter : BaseEltAdapter
 {
@@ -61,7 +61,7 @@ public class QgisAdapter : BaseEltAdapter
         try
         {
             _rpcClient = new TcpClient();
-            var connectTask = _rpcClient.ConnectAsync("0.0.0.0", RpcPort);
+            var connectTask = _rpcClient.ConnectAsync("sm", RpcPort);
             if (connectTask.Wait(TimeSpan.FromMilliseconds(500)))
             {
                 return true;
@@ -110,35 +110,7 @@ public class QgisAdapter : BaseEltAdapter
             return meta;
         }
 
-        // 3. Fallback when testing non-existent file path
-        const double centerLat = 45.4215;
-        const double centerLon = -75.6972;
-        const double d = 0.08;
-        var bbox = new GeoBBox(centerLon - d, centerLat - d, centerLon + d, centerLat + d);
-
-        return new ImageMetadata
-        {
-            Uri = uri,
-            ProductId = Path.GetFileNameWithoutExtension(uri),
-            SensorId = "SENTINEL-2/MSI",
-            Format = ImageFormat.GeoTiff,
-            Width = 3600,
-            Height = 3600,
-            BitDepth = 16,
-            BandCount = 12,
-            SunElevationDeg = 48.0,
-            SunAzimuthDeg = 150.0,
-            Niirs = 4.5,
-            AcquisitionTimeIso = "2026-10-08T15:20:00Z",
-            BBox = bbox,
-            Tres = new Dictionary<string, string> { ["GDAL_METADATA"] = "DRIVER=GTiff" },
-            Rpc = null,
-            Extra = new Dictionary<string, object>
-            {
-                ["QgisRpcPort"] = RpcPort,
-                ["QgisBatchFound"] = !string.IsNullOrEmpty(QgisPythonBatchPath)
-            }
-        };
+        throw new ImageNotFoundException($"Raster file '{uri}' not found on disk.");
     }
 
     public override ViewportState RoamToGeo(double lat, double lon, double? zoom = null)
@@ -165,7 +137,7 @@ public class QgisAdapter : BaseEltAdapter
             }
             catch
             {
-                // Non-fatal if socket communication fails
+                // Non-fatal if socket communication drops
             }
         }
 

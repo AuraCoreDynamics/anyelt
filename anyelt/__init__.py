@@ -1,6 +1,6 @@
 """
 AnyElt: Universal Electronic Light Table (ELT) Abstraction Library.
-Sovereign GEOINT exploitation abstraction across desktop, web, catalog, and scientific ELTs.
+Sovereign GEOINT exploitation abstraction across desktop and web ELTs.
 """
 
 from anyelt.capabilities import EltCapability, CAPABILITY_METADATA
@@ -18,8 +18,7 @@ from anyelt.exceptions import (
 from anyelt.base import IEltAdapter
 from anyelt.bridge import EltBridge, EltSessionBroker
 from anyelt.adapters import (
-    AuraMistAdapter, SocetGxpAdapter, RemoteViewAdapter,
-    QgisAdapter, ISpyAdapter, ImageJAdapter, QuasarAdapter
+    AuraMistAdapter, QgisAdapter
 )
 from anyelt.api import (
     get_adapter, get_all_adapters, find_best_elt, open_image,
@@ -67,12 +66,7 @@ __all__ = [
 
     # Adapters
     "AuraMistAdapter",
-    "SocetGxpAdapter",
-    "RemoteViewAdapter",
     "QgisAdapter",
-    "ISpyAdapter",
-    "ImageJAdapter",
-    "QuasarAdapter",
 
     # API Helpers
     "get_adapter",

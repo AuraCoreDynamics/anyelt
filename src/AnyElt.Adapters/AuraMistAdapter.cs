@@ -6,10 +6,11 @@ using AnyElt.Core;
 using AnyElt.Core.IO;
 
 /// <summary>
-/// Real AuraMist Web ELT & AuraTiles Adapter.
-/// Communicates with AuraMist Sovereign Web Platform via REST & WebSocket,
-/// parses MIL-STD-2500C NITF layers on disk using native binary readers,
-/// and commands WebGL light table radiometrics and dual-space tiling.
+/// Real AuraMist Web ELT Adapter.
+/// Interfaces directly with the live AuraMist Sovereign Geospatial Platform via REST and WebSocket.
+/// Directly ingests binary MIL-STD-2500C NITF and GeoTIFF imagery on disk,
+/// queries live AuraMist spatial layers and catalog endpoints,
+/// and synchronizes WebGL canvas viewports.
 /// </summary>
 public class AuraMistAdapter : BaseEltAdapter
 {
@@ -21,12 +22,13 @@ public class AuraMistAdapter : BaseEltAdapter
     public AuraMistAdapter(string? endpointUrl = null, string? auraTilesUrl = null)
         : base("AuraMist Web ELT Adapter", "1.0.0", "auramist")
     {
-        EndpointUrl = endpointUrl ?? "http://0.0.0.0:7080";
-        AuraTilesUrl = auraTilesUrl ?? "http://0.0.0.0:7080/tiles";
+        EndpointUrl = endpointUrl ?? "http://sm:7080";
+        AuraTilesUrl = auraTilesUrl ?? "http://sm:7080/tiles";
     }
 
     public override EltCapability Capabilities =>
         EltCapability.DirectLoading |
+        EltCapability.CatalogSearch |
         EltCapability.RadiometricEnhancement |
         EltCapability.DynamicRangeAdjustment |
         EltCapability.SensorRoam |
@@ -56,9 +58,9 @@ public class AuraMistAdapter : BaseEltAdapter
                 return true;
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Server offline or local mode
+            throw new EltConnectionException("AuraMist", $"Failed to connect to AuraMist server at {EndpointUrl}: {ex.Message}", ex);
         }
 
         return true;
@@ -70,15 +72,16 @@ public class AuraMistAdapter : BaseEltAdapter
             ? uri.Substring(7)
             : uri;
 
-        // 1. If file exists on disk, read actual binary NITF/GeoTIFF metadata
+        // 1. Direct binary NITF / GeoTIFF ingestion from disk
         if (File.Exists(cleanPath))
         {
             var meta = RasterReader.ReadMetadata(cleanPath);
             meta.Extra["AuraMist_LocalBinary"] = true;
+            meta.Extra["AuraTiles_Backend"] = AuraTilesUrl;
             return meta;
         }
 
-        // 2. If it's a remote AuraMist layer URI (e.g. http://.../api/layers/...), fetch via REST
+        // 2. Query remote layer from live AuraMist REST API
         if (uri.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
             uri.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
         {
@@ -92,6 +95,7 @@ public class AuraMistAdapter : BaseEltAdapter
                     var root = doc.RootElement;
                     string id = root.TryGetProperty("id", out var pId) ? pId.GetString() ?? "layer" : "layer";
                     string name = root.TryGetProperty("name", out var pName) ? pName.GetString() ?? "AuraMist Layer" : "AuraMist Layer";
+                    string type = root.TryGetProperty("type", out var pType) ? pType.GetString() ?? "Raster" : "Raster";
 
                     return new ImageMetadata
                     {
@@ -107,68 +111,103 @@ public class AuraMistAdapter : BaseEltAdapter
                         SunAzimuthDeg = 138.2,
                         Niirs = 6.8,
                         BBox = new GeoBBox(-77.08, 38.86, -77.01, 38.92),
-                        Tres = new Dictionary<string, string> { ["AuraMist_Live"] = "Active" }
+                        Tres = new Dictionary<string, string> { ["AuraMist_LiveLayer"] = type },
+                        Extra = new Dictionary<string, object>
+                        {
+                            ["AuraMist_Endpoint"] = EndpointUrl,
+                            ["AuraTiles_Backend"] = AuraTilesUrl
+                        }
                     };
                 }
+                throw new EltConnectionException("AuraMist", $"AuraMist endpoint returned HTTP {(int)res.StatusCode} ({res.ReasonPhrase}) for {uri}");
             }
-            catch
+            catch (Exception ex) when (ex is not EltConnectionException)
             {
-                // Fallback to local model
+                throw new EltConnectionException("AuraMist", $"Failed to fetch remote AuraMist layer '{uri}': {ex.Message}", ex);
             }
         }
 
-        // 3. Fallback when testing synthetic URI
-        const double centerLat = 38.8951;
-        const double centerLon = -77.0364;
-        const double d = 0.04;
+        throw new ImageNotFoundException($"Raster file or layer '{uri}' not found on disk or remote AuraMist catalog.");
+    }
 
-        var bbox = new GeoBBox(centerLon - d, centerLat - d, centerLon + d, centerLat + d);
+    public override IReadOnlyList<CatalogItem> QueryCatalog(CatalogQuery query)
+    {
+        RequireCapability(EltCapability.CatalogSearch);
 
-        var rpc = new RpcCoefficients
+        string url = $"{EndpointUrl}/api/layers";
+        try
         {
-            LineOffset = 1024.0,
-            LineScale = 1024.0,
-            SampleOffset = 1024.0,
-            SampleScale = 1024.0,
-            LatOffset = centerLat,
-            LatScale = d,
-            LonOffset = centerLon,
-            LonScale = d,
-            LineNumCoeff = [0.0, 0.0, 1.0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            SampleNumCoeff = [0.0, 1.0, 0.0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-        };
-
-        var tres = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["RPC00B"] = "SUCCESS",
-            ["USE00A"] = "SUN_ELEV=46.8,SUN_AZIM=138.2,NIIRS=6.8",
-            ["STDIDC"] = "MISSION=AURAMIST_DC_01,PASS=01",
-            ["ICHIPB"] = "XFRM_FLAG=00"
-        };
-
-        return new ImageMetadata
-        {
-            Uri = uri,
-            ProductId = "AURAMIST_NITF_LAYER",
-            SensorId = "WORLDVIEW-03/PAN",
-            Format = ImageFormat.Nitf21,
-            Width = 2048,
-            Height = 2048,
-            BitDepth = 16,
-            BandCount = 1,
-            SunElevationDeg = 46.8,
-            SunAzimuthDeg = 138.2,
-            Niirs = 6.8,
-            AcquisitionTimeIso = "2026-10-11T16:00:00Z",
-            BBox = bbox,
-            Tres = tres,
-            Rpc = rpc,
-            Extra = new Dictionary<string, object>
+            var res = SharedHttpClient.GetAsync(url).GetAwaiter().GetResult();
+            if (!res.IsSuccessStatusCode)
             {
-                ["AuraTiles_Backend"] = AuraTilesUrl,
-                ["DualSpace"] = "Enabled"
+                throw new EltConnectionException("AuraMist", $"AuraMist returned HTTP {(int)res.StatusCode} ({res.ReasonPhrase}) for {url}");
             }
-        };
+
+            string json = res.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            using var doc = JsonDocument.Parse(json);
+            var items = new List<CatalogItem>();
+
+            foreach (var elem in doc.RootElement.EnumerateArray())
+            {
+                string id = elem.TryGetProperty("id", out var pId) ? pId.GetString() ?? "" : "";
+                string name = elem.TryGetProperty("name", out var pName) ? pName.GetString() ?? "" : "";
+                string sourceType = elem.TryGetProperty("sourceType", out var pSource) ? pSource.GetString() ?? "AuraMist" : "AuraMist";
+                string type = elem.TryGetProperty("type", out var pType) ? pType.GetString() ?? "Raster" : "Raster";
+                bool visible = elem.TryGetProperty("visible", out var pVis) && pVis.GetBoolean();
+
+                if (!string.IsNullOrEmpty(query.SensorId) &&
+                    !sourceType.Contains(query.SensorId, StringComparison.OrdinalIgnoreCase) &&
+                    !name.Contains(query.SensorId, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                items.Add(new CatalogItem
+                {
+                    ItemId = id,
+                    Title = name,
+                    SensorId = sourceType,
+                    AcquisitionTimeIso = DateTime.UtcNow.ToString("O"),
+                    DownloadUri = $"{EndpointUrl}/api/layers/{id}",
+                    BBox = query.BBox ?? new GeoBBox(-180, -90, 180, 90),
+                    Tres = new Dictionary<string, string>
+                    {
+                        ["Visible"] = visible.ToString(),
+                        ["Type"] = type,
+                        ["AuraMist_Managed"] = "true"
+                    }
+                });
+            }
+
+            return items.Take(query.Limit).ToList();
+        }
+        catch (EltConnectionException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            throw new EltConnectionException("AuraMist", $"Cannot query AuraMist catalog at {url}: {ex.Message}", ex);
+        }
+    }
+
+    public override ViewportState RoamToGeo(double lat, double lon, double? zoom = null)
+    {
+        var vp = base.RoamToGeo(lat, lon, zoom);
+
+        // Synchronize viewport with live AuraMist server if reachable
+        try
+        {
+            var searchPayload = new { text = $"{lat:F6}, {lon:F6}" };
+            SharedHttpClient.PostAsJsonAsync($"{EndpointUrl}/api/coordinates/search", searchPayload)
+                .GetAwaiter().GetResult();
+        }
+        catch
+        {
+            // Non-fatal if server is offline during offline analysis
+        }
+
+        return vp;
     }
 
     public async Task<bool> RegisterLayerWithAuraMistAsync(ImageMetadata metadata)

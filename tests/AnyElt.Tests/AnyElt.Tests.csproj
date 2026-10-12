@@ -19,7 +19,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\AnyElt.Core\AnyElt.Core.csproj" />
-    <ProjectReference Include="..\..\src\AnyElt.Extensions\AnyElt.Extensions.csproj" />
     <ProjectReference Include="..\..\src\AnyElt.Adapters\AnyElt.Adapters.csproj" />
   </ItemGroup>
 

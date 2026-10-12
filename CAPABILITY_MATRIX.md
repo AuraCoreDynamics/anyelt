@@ -5,13 +5,8 @@
 
 | ELT Platform | Direct Loading | Catalog Search | Radiometric Enhancement | DRA Modes | Sensor Roam | Ground Roam | Shadow Mensuration | Distance Mensuration | RPC Projection | Sensor Chipping | Ground Chipping | TRE Inspection | Multi-Spectral | Hyperspectral | Spectral Signature | Scripting Macro | Viewport Sync | Orthorectification |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **AuraMist Web ELT Adapter** (`auramist`) | ✔ | - | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | - | - | - | - | ✔ | ✔ |
-| **BAE Systems SOCET GXP Adapter** (`socet_gxp`) | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | - | - | - | ✔ | - |
-| **Textron Systems RemoteView Adapter** (`remoteview`) | ✔ | - | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | - | - | - | - | - | - |
+| **AuraMist Web ELT Adapter** (`auramist`) | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | - | - | - | - | ✔ | ✔ |
 | **QGIS PyQGIS Bridge Adapter** (`qgis`) | ✔ | - | ✔ | - | - | ✔ | - | ✔ | - | - | ✔ | ✔ | ✔ | - | - | - | ✔ | - |
-| **NGA iSPY Catalog Adapter** (`ispy`) | - | ✔ | - | - | - | - | - | - | - | - | ✔ | ✔ | - | - | - | - | - | - |
-| **ImageJ / Fiji GEOINT Adapter** (`imagej`) | ✔ | - | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | - | ✔ | - | - | - | ✔ | - | - |
-| **Quasar / Orange Hyperspectral Adapter** (`quasar`) | ✔ | - | - | - | - | - | - | - | - | ✔ | - | - | ✔ | ✔ | ✔ | - | - | - |
 
 ## Feature Definitions
 

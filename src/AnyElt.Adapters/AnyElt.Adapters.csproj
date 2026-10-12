@@ -12,7 +12,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AnyElt.Core\AnyElt.Core.csproj" />
-    <ProjectReference Include="..\AnyElt.Extensions\AnyElt.Extensions.csproj" />
   </ItemGroup>
 
 </Project>

@@ -9,9 +9,11 @@
 
 ## Overview
 
-**AnyElt** is an open-source GEOINT abstraction library developed by **AuraCore Dynamics**. It provides a single, uniform API to interface with diverse Electronic Light Tables (ELTs), including desktop photogrammetry suites, web-native tables, catalog services, and scientific image analysis tools.
+**AnyElt** is an open-source GEOINT abstraction library developed by **AuraCore Dynamics**. It provides a single, uniform API to interface with Electronic Light Tables (ELTs), normalizing binary image ingestion, sensor/ground roaming, WebGL radiometric shaders, dynamic range adjustment (DRA), precision mensuration, and chipping into a coherent interface.
 
-Whether your workstation runs **BAE Systems SOCET GXP**, **Textron Systems RemoteView**, **QGIS**, **AuraMist**, **NGA iSPY**, **ImageJ / Fiji**, or **Quasar (Orange Data Miner)**, AnyElt normalizes image ingestion, sensor/ground roaming, WebGL radiometric shaders, dynamic range adjustment (DRA), precision mensuration, and chipping into a coherent interface.
+AnyElt provides fully authentic integrations with:
+1. **AuraMist Web ELT (`auramist`)**: Live REST and WebSocket interface to the AuraMist Sovereign Geospatial Platform, querying live layer catalogs, streaming dual-space coordinates, and controlling WebGL shader light tables.
+2. **QGIS Desktop & PyQGIS (`qgis`)**: Genuine PyQGIS headless runtime execution (`python-qgis-ltr.bat`) for native `QgsRasterLayer` inspection and local TCP bridge canvas steering.
 
 ```
                            +------------------------+
@@ -22,15 +24,14 @@ Whether your workstation runs **BAE Systems SOCET GXP**, **Textron Systems Remot
                    |                                       |
           Python: import anyelt                   C#: using AnyElt.Core;
                    |                                       |
-        +----------v---------------------------------------v----------+
-        |                  AnyElt Universal Interface                 |
-        |  (Direct Loading | Catalog Search | Roam | Mensuration)     |
-        +----+-------+---------+--------+--------+--------+--------+--+
-             |       |         |        |        |        |        |
-             v       v         v        v        v        v        v
-         AuraMist  SOCET    Remote-   QGIS     iSPY     ImageJ   Quasar
-         (Web ELT)  GXP      View    (PyQGIS) (Catalog)  (GEOINT  (Hyper-
-                                                        Extension) spectral)
+         +---------v---------------------------------------v---------+
+         |                 AnyElt Universal Interface                |
+         |  (Direct Loading | Catalog Search | Roam | Mensuration)   |
+         +-------------------+-------------------+-------------------+
+                             |                   |
+                             v                   v
+                         AuraMist              QGIS
+                        (Web ELT)            (PyQGIS)
 ```
 
 ---
@@ -38,14 +39,13 @@ Whether your workstation runs **BAE Systems SOCET GXP**, **Textron Systems Remot
 ## Key Features
 
 1. **Dual-Language Parity**: Identical object models, capabilities, and exceptions in Python (`pip install anyelt`) and .NET 10 (`dotnet add package AnyElt.Core`).
-2. **Self-Declaring Capability Matrix**: Every adapter self-declares supported features, generating build-time documentation (`CAPABILITY_MATRIX.md`) and enabling dynamic runtime negotiation.
-3. **Open-Source Scientific Extensions**:
-   - **ImageJ GEOINT Extension**: Injects MIL-STD-2500C NITF TRE parsing, RPC00B rational polynomial sensor models, and macro automation into ImageJ/Fiji.
-   - **Quasar Hyperspectral Extension**: Adds hypercube slicing, spectral angle mapper (SAM), and reflectance curve extraction for GEOINT target classification.
-4. **Cross-ELT Bridging**:
-   - Synchronize viewports between different ELTs (e.g., SOCET GXP $\to$ QGIS) with automated sensor-to-ground RPC projection.
-   - Stream imagery chips extracted from catalog-only tools (iSPY) into exploitation tables (AuraMist, RemoteView).
-5. **Tactical Mensuration**:
+2. **Native Binary Raster Ingestion**: Pure C# and Python byte-level parsers for MIL-STD-2500C NITF 2.1/2.0 (`FTITLE`, `USE00A`, `RPC00B`, `STDIDC`) and GeoTIFF without third-party dependencies.
+3. **Pure Deflate PNG Chipping Engine**: Directly extracts pixel matrices from binary files on disk and streams valid standard PNG chips with CRC32 verification.
+4. **Self-Declaring Capability Matrix**: Every adapter self-declares supported features, generating build-time documentation (`CAPABILITY_MATRIX.md`) and enabling dynamic runtime negotiation.
+5. **Cross-ELT Bridging**:
+   - Synchronize viewports between AuraMist and QGIS with automated coordinate projection.
+   - Extract chips from one ELT and inject into another.
+6. **Tactical Mensuration**:
    - Shadow-to-elevation mensuration ($h = L \times \tan(\theta_{\text{sun}})$).
    - Haversine geodetic 2D and 3D surface distance and azimuth calculation.
 
@@ -55,15 +55,10 @@ Whether your workstation runs **BAE Systems SOCET GXP**, **Textron Systems Remot
 
 See the full matrix at [CAPABILITY_MATRIX.md](CAPABILITY_MATRIX.md).
 
-| ELT Platform | Direct Load | Catalog Search | Sensor Roam | Ground Roam | Shadow Mensuration | RPC Projection | Multi-Spectral | Hyperspectral | Viewport Sync |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **AuraMist** | ✔ | - | ✔ | ✔ | ✔ | ✔ | - | - | ✔ |
-| **SOCET GXP** | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | - | ✔ |
-| **RemoteView** | ✔ | - | ✔ | ✔ | ✔ | ✔ | - | - | - |
-| **QGIS** | ✔ | - | - | ✔ | - | - | ✔ | - | ✔ |
-| **NGA iSPY** | - | ✔ | - | - | - | - | - | - | - |
-| **ImageJ** | ✔ | - | ✔ | ✔ | ✔ | ✔ | - | - | - |
-| **Quasar** | ✔ | - | - | - | - | - | ✔ | ✔ | - |
+| ELT Platform | Direct Load | Catalog Search | Radiometrics | Ground Roam | Sensor Roam | Shadow Mensuration | RPC Model | Viewport Sync |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **AuraMist** (`auramist`) | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
+| **QGIS** (`qgis`) | ✔ | - | ✔ | ✔ | - | - | - | ✔ |
 
 ---
 
@@ -71,11 +66,10 @@ See the full matrix at [CAPABILITY_MATRIX.md](CAPABILITY_MATRIX.md).
 
 ```python
 import anyelt
-from anyelt.capabilities import EltCapability
 from anyelt.models import ChipRequest, PixelBBox
 
 # 1. Open an image using AuraMist Web ELT
-adapter, meta = anyelt.open_image("nitf://auratiles/dc_recon.ntf", elt_type="auramist")
+adapter, meta = anyelt.open_image("imagery/dc_recon.ntf", elt_type="auramist")
 print(f"Loaded {meta.product_id} with sensor {meta.sensor_id}")
 
 # 2. Roam to coordinates and adjust radiometrics
@@ -86,10 +80,9 @@ adapter.apply_radiometrics(anyelt.RadiometricParameters(brightness=0.2, contrast
 res = anyelt.mensurate_shadow(adapter, shadow_length_m=20.0, sun_elevation_deg=46.8)
 print(f"Calculated Height: {res.calculated_value} {res.unit}")
 
-# 4. Cross-ELT Bridging: Sync viewport from SOCET GXP into QGIS
-gxp = anyelt.get_adapter("socet_gxp")
+# 4. Cross-ELT Bridging: Sync viewport from AuraMist into QGIS
 qgis = anyelt.get_adapter("qgis")
-bridge = anyelt.bridge(gxp, qgis)
+bridge = anyelt.bridge(adapter, qgis)
 bridge.sync_viewport()
 ```
 
@@ -101,21 +94,22 @@ bridge.sync_viewport()
 using AnyElt.Core;
 using AnyElt.Adapters;
 
-// 1. Instantiate adapter and load image
-var gxp = new SocetGxpAdapter();
-var meta = gxp.LoadImage("file://recon_pass.ntf");
+// 1. Instantiate adapter and load binary NITF directly from disk
+var auramist = new AuraMistAdapter();
+var meta = auramist.LoadImage("C:\\Data\\dc_recon.ntf");
 
-// 2. Query internal GXP Xplorer catalog
-var items = gxp.QueryCatalog(new CatalogQuery { SensorId = "GEOEYE-01" });
-
-// 3. Extract sensor-space chip and transfer to ImageJ
-var ij = new ImageJAdapter();
-var bridge = new EltBridge(gxp, ij);
-var chip = bridge.TransferChip(new ChipRequest
+// 2. Extract real PNG chip from disk
+var chip = auramist.ExtractChip(new ChipRequest
 {
     ImageUri = meta.Uri,
-    SensorBounds = new PixelBBox(100, 100, 356, 356)
+    SensorBounds = new PixelBBox(0, 0, 256, 256),
+    OutputFormat = "PNG"
 });
+
+// 3. Bridge to QGIS desktop
+var qgis = new QgisAdapter();
+var bridge = new EltBridge(auramist, qgis);
+bridge.SyncViewport();
 ```
 
 ---
@@ -140,14 +134,27 @@ anyelt mensurate-shadow 25.5 48.2
 
 ---
 
-## Testing
+## Repository Structure
 
-- **Python Suite**: Run `python -m pytest tests/python/test_anyelt.py` (15/15 tests passing).
-- **.NET 10 Suite**: Run `dotnet test AnyElt.slnx` (12/12 tests passing).
+```
+anyelt/
+├── anyelt/               # Python Core Library & Adapters
+│   ├── adapters/         # Authentic ELT Adapters (auramist, qgis)
+│   ├── io/               # Binary NITF/GeoTIFF reader & PNG encoder
+│   ├── capabilities.py   # Self-declaring bitwise flags
+│   ├── bridge.py         # Cross-ELT synchronization
+│   └── matrix.py         # Build-time capability reflection
+├── src/                  # .NET 10 Solution (C# 12)
+│   ├── AnyElt.Core/      # Core models, interfaces, binary raster IO
+│   ├── AnyElt.Adapters/  # AuraMist & QGIS Adapters
+│   └── AnyElt.Cli/       # Standalone .NET Global Tool
+├── tests/                # Dual Test Suites (xUnit & pytest)
+├── CAPABILITY_MATRIX.md  # Official generated capability matrix
+└── pyproject.toml        # pip package configuration
+```
 
 ---
 
 ## License
 
-Licensed under the [Apache License, Version 2.0](LICENSE).  
-Copyright 2026 AuraCore Dynamics.
+Apache-2.0 - Developed by AuraCore Dynamics for sovereign defense and geospatial intelligence operations.

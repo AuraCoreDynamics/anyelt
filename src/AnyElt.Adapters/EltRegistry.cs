@@ -10,12 +10,7 @@ public static class EltRegistry
         new(StringComparer.OrdinalIgnoreCase)
         {
             ["auramist"] = () => new AuraMistAdapter(),
-            ["socet_gxp"] = () => new SocetGxpAdapter(),
-            ["remoteview"] = () => new RemoteViewAdapter(),
-            ["qgis"] = () => new QgisAdapter(),
-            ["ispy"] = () => new ISpyAdapter(),
-            ["imagej"] = () => new ImageJAdapter(),
-            ["quasar"] = () => new QuasarAdapter()
+            ["qgis"] = () => new QgisAdapter()
         };
 
     public static IEltAdapter Create(string eltType)
