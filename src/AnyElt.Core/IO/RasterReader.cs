@@ -410,7 +410,7 @@ public static class RasterReader
             int toRead = Math.Min(buffer.Length, (int)(stream.Length - dataStart));
             if (toRead > 0)
             {
-                stream.Read(buffer, 0, toRead);
+                stream.ReadExactly(buffer, 0, toRead);
             }
         }
         catch
